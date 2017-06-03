@@ -15,7 +15,7 @@
 		18616E661EE2318000D09364 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 18616E641EE2318000D09364 /* LaunchScreen.storyboard */; };
 		18616E731EE233E900D09364 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 18616E701EE233E900D09364 /* AppDelegate.m */; };
 		18616E741EE233E900D09364 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 18616E721EE233E900D09364 /* ViewController.m */; };
-		18616E771EE2341E00D09364 /* NetworkRequestQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 18616E761EE2341E00D09364 /* NetworkRequestQueue.m */; };
+		18616E771EE2341E00D09364 /* NetworkRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 18616E761EE2341E00D09364 /* NetworkRequest.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,8 +32,8 @@
 		18616E701EE233E900D09364 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		18616E711EE233E900D09364 /* ViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		18616E721EE233E900D09364 /* ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
-		18616E751EE2341E00D09364 /* NetworkRequestQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkRequestQueue.h; sourceTree = "<group>"; };
-		18616E761EE2341E00D09364 /* NetworkRequestQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NetworkRequestQueue.m; sourceTree = "<group>"; };
+		18616E751EE2341E00D09364 /* NetworkRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkRequest.h; sourceTree = "<group>"; };
+		18616E761EE2341E00D09364 /* NetworkRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NetworkRequest.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,8 +88,8 @@
 		18616E6D1EE233E900D09364 /* NetworkRequestQueue */ = {
 			isa = PBXGroup;
 			children = (
-				18616E751EE2341E00D09364 /* NetworkRequestQueue.h */,
-				18616E761EE2341E00D09364 /* NetworkRequestQueue.m */,
+				18616E751EE2341E00D09364 /* NetworkRequest.h */,
+				18616E761EE2341E00D09364 /* NetworkRequest.m */,
 			);
 			path = NetworkRequestQueue;
 			sourceTree = "<group>";
@@ -181,7 +181,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				18616E771EE2341E00D09364 /* NetworkRequestQueue.m in Sources */,
+				18616E771EE2341E00D09364 /* NetworkRequest.m in Sources */,
 				18616E731EE233E900D09364 /* AppDelegate.m in Sources */,
 				182DE7A51EE2ABE300BF74F9 /* SampleTableViewCell.m in Sources */,
 				18616E581EE2318000D09364 /* main.m in Sources */,

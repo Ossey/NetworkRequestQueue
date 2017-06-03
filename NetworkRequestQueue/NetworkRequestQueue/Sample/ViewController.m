@@ -1,13 +1,13 @@
 //
 //  ViewController.m
-//  NetworkRequestQueue
+//  NetworkRequest
 //
 //  Created by Ossey on 2017/6/3.
 //  Copyright © 2017年 Ossey. All rights reserved.
 //
 
 #import "ViewController.h"
-#import "NetworkRequestQueue.h"
+#import "NetworkRequest.h"
 #import "SampleTableViewCell.h"
 
 @interface ViewController ()
@@ -24,8 +24,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
-
-
+    
+    
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"加载" style:0 target:self action:@selector(loadDataFromNetwork)];
     
     [self.tableView registerNib:[UINib nibWithNibName:@"SampleTableViewCell" bundle:nil] forCellReuseIdentifier:@"SampleTableViewCell"];
@@ -64,7 +64,7 @@
             OSOperation *op = [OSOperation operationWithRequest:request];
             
             op.completionHandler = ^(NSURLResponse *response, NSData *data, NSError *error) {
-              
+                
                 if (!error) {
                     UIImage *image = [UIImage imageWithData:data];
                     if (image) {
@@ -73,7 +73,14 @@
                         
                     } else {
                         // 未获取到图片
-                        [_imageUrls replaceObjectAtIndex:idx withObject:[error localizedDescription]];
+                        NSString *errorDes = nil;
+                        if (error) {
+                            errorDes = [error localizedDescription];
+                        } else {
+                            errorDes = @"非image";
+                        }
+                        
+                        [_imageUrls replaceObjectAtIndex:idx withObject:errorDes];
                     }
                 }
                 
@@ -82,13 +89,13 @@
             
             
             op.downloadProgressHandler = ^(float progress, NSInteger bytesTransferred, NSInteger totalBytes) {
-              
+                
                 [_progressStatues setValue:@(progress) forKey:obj];
                 
                 [self refreshView];
             };
             
-            [[NetworkRequestQueue mainQueue] addOperation:op];
+            [[NetworkRequest sharedInstance] addOperation:op];
         }];
     }
     
@@ -99,7 +106,7 @@
     [self.tableView reloadData];
     
     // 更新按钮的状态
-    if ([[NetworkRequestQueue mainQueue] requestCount]) {
+    if ([[NetworkRequest sharedInstance] requestCount]) {
         // 正在加载中
         self.navigationItem.rightBarButtonItem.enabled = NO;
         self.navigationItem.rightBarButtonItem.title = @"等待中";
@@ -150,6 +157,7 @@
 
 - (NSArray <NSString *> *)getImageUrls {
     return @[
+             
              @"https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=3494814264,3775539112&fm=21&gp=0.jpg",
              @"https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=1996306967,4057581507&fm=21&gp=0.jpg",
              @"https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=2844924515,1070331860&fm=21&gp=0.jpg",

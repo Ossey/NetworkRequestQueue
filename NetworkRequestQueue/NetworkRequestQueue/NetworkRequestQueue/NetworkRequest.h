@@ -1,12 +1,21 @@
 //
-//  NetworkRequestQueue.h
-//  NetworkRequestQueue
+//  NetworkRequest.h
+//  NetworkRequest
 //
 //  Created by Ossey on 2017/6/3.
 //  Copyright © 2017年 Ossey. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
+
+//typedef NS_ENUM(NSInteger, OSRequestStatu) {
+//    OSRequestPause,             // 暂停
+//    OSRequestCanceled,          // 取消请求
+//    OSRequestWaiting,           // 等待中
+//    OSRequestExecuting,         // 正在执行该请求中
+//    OSRequestStatuFinish,       // 请求完成
+//    OSRequestStatuFailure       // 请求失败
+//};
 
 typedef void(^OSCompletionHandler)(NSURLResponse *response, NSData *data, NSError *error);
 /// @param progress 请求进度
@@ -37,16 +46,16 @@ typedef NS_ENUM(NSInteger, NetworkRequestMode) {
 @property (nonatomic, assign) NSTimeInterval autoRetryDelay;
 /// 是否自动重试, 当请求失败时，若设置此属性为YES,且当前失败的code为autoRetryErrorCodes中的，就会在autoRetryDelay设定的时间后重新发起请求
 @property (nonatomic, assign) BOOL autoRetry;
-/// 只有符合这些错误code才允许自动重试 
+/// 只有符合这些错误code才允许自动重试
 @property (nonatomic, strong) NSSet *autoRetryErrorCodes;
 
 + (instancetype)operationWithRequest:(NSURLRequest *)request;
 
 @end
 
-@interface NetworkRequestQueue : NSObject
+@interface NetworkRequest : NSObject
 
-@property (nonatomic, copy, readonly, class) NetworkRequestQueue *mainQueue;
+@property (nonatomic, copy, readonly, class) NetworkRequest *sharedInstance;
 /// 此属性控制新的请求是添加在请求操作集合的最前面还是最后面，默认为NetworkRequestModeFILO(那新的请求会放在操作集合的最后面完成)，当为NetworkRequestModeLIFO时新的请求会优先执行，正在请求的任务不受影响
 @property (nonatomic, assign) NetworkRequestMode requestMode;
 /// 并发请求的最大数量，当添加更多请求时，会添加到请求操作的队列中等待完成再执行，当值为0时请求的数量没有限制，值为1时一次只能请求一个，默认值为2
