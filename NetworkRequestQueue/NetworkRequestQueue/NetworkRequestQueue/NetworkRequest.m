@@ -178,7 +178,6 @@ NSString * const HTTPResponseErrorDomain = @"HTTPResponseErrorDomain";
     }
     if ([keyPath isEqualToString:@"isFinished"]) {
         [op removeObserver:self forKeyPath:keyPath];
-        [op removeObserver:self forKeyPath:@"requestState"];
         [self.operations removeObject:op];
         if (self.startImmediately) {
             [self startAllRequests];
@@ -186,8 +185,8 @@ NSString * const HTTPResponseErrorDomain = @"HTTPResponseErrorDomain";
     }
     
     if ([keyPath isEqualToString:@"requestState"]) {
+        [op removeObserver:self forKeyPath:keyPath];
         if (op.requestState == OSRequestFailure) {
-            [op removeObserver:self forKeyPath:keyPath];
             // 尝试重新下载
             //            [op start];
         }

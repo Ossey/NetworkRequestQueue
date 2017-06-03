@@ -14,16 +14,17 @@
 {
     self = [super init];
     if (self) {
-        _image = nil;
+        _data = nil;
         _progress = 0.0;
         _statue = 0;
     }
     return self;
 }
 
-- (void)setImage:(UIImage *)image {
+
+- (void)setData:(NSData *)data {
     
-    _image = image;
+    _data = data;
     
     [self perforRefresh];
 }

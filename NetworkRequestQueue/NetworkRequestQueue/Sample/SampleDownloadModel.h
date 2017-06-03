@@ -10,7 +10,7 @@
 
 @interface SampleDownloadModel : NSObject
 
-@property (nonatomic, strong) UIImage *image;
+@property (nonatomic, strong) NSData *data;
 @property (nonatomic, assign) CGFloat progress;
 @property (nonatomic, assign) NSInteger statue;
 @property (nonatomic, copy) NSString *fileName;

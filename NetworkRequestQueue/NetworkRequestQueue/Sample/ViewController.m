@@ -62,14 +62,10 @@
         op.completionHandler = ^(NSURLResponse *response, NSData *data, NSError *error) {
             
             if (!error) {
-                UIImage *image = [UIImage imageWithData:data];
-                if (image) {
-                    model.image = image;
-                }
+                model.data = data;
             }
             
         };
-        
         
         op.downloadProgressHandler = ^(float progress, NSInteger bytesTransferred, NSInteger totalBytes) {
             
@@ -134,14 +130,15 @@
 }
 
 - (void)tableView:(__unused UITableView *)tableView didSelectRowAtIndexPath:(__unused NSIndexPath *)indexPath {
-    UIViewController *viewController = [[UIViewController alloc] init];
+    NSData *data = _dataSource[indexPath.row].data;
+    UIImage *image = [UIImage imageWithData:data];
+    if (image) {
+        UIViewController *viewController = [[UIViewController alloc] init];
+        UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
+        viewController.view = imageView;
+        [self.navigationController pushViewController:viewController animated:YES];
+    }
     
-    //    NSString *urlString = _imageUrls[indexPath.row];
-    //    UIImage *image = _images[urlString];
-    //    UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
-    //    viewController.view = imageView;
-    
-    [self.navigationController pushViewController:viewController animated:YES];
 }
 
 - (NSArray <NSString *> *)getImageUrls {

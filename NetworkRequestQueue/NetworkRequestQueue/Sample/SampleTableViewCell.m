@@ -61,7 +61,11 @@
 
 - (void)loadData {
     
-    self.iconView.image = self.model.image;
+    UIImage *image = [UIImage imageWithData:self.model.data];
+    if (image) {
+        self.iconView.image = image;
+    }
+    
     self.progressView.progress = self.model.progress;
     
     NSString *bytesTransferred = [[self class] transformedFileSizeValue:@(self.model.bytesTransferred)];
