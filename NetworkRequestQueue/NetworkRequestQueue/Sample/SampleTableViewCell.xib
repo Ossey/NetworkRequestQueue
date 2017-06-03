@@ -6,12 +6,13 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12086"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
-        <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" rowHeight="225" id="lJO-R2-tsu" customClass="SampleTableViewCell">
+        <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="SampleTableViewCell" rowHeight="225" id="lJO-R2-tsu" customClass="SampleTableViewCell">
             <rect key="frame" x="0.0" y="0.0" width="422" height="225"/>
             <autoresizingMask key="autoresizingMask"/>
             <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="lJO-R2-tsu" id="VlQ-v8-Tsy">
@@ -19,26 +20,63 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="ezI-Hc-MaQ">
-                        <rect key="frame" x="5" y="5" width="220" height="181.5"/>
+                        <rect key="frame" x="5" y="41" width="220" height="145"/>
                         <constraints>
                             <constraint firstAttribute="width" constant="220" id="LZh-ac-KEA"/>
                         </constraints>
                     </imageView>
-                    <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="WEi-Bd-aCT">
+                    <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="WEi-Bd-aCT">
                         <rect key="frame" x="5" y="207.5" width="412" height="2"/>
                     </progressView>
+                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Pid-xl-mmd">
+                        <rect key="frame" x="381" y="97" width="31" height="33"/>
+                        <color key="backgroundColor" red="0.31368409930000002" green="1" blue="0.5649767242" alpha="1" colorSpace="calibratedRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="33" id="iyM-Ge-ya5"/>
+                        </constraints>
+                        <state key="normal" title="开始">
+                            <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        </state>
+                        <connections>
+                            <action selector="downloadStatuBtnClick:" destination="lJO-R2-tsu" eventType="touchUpInside" id="awM-qJ-8PB"/>
+                        </connections>
+                    </button>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WCJ-ze-jhR">
+                        <rect key="frame" x="5" y="10" width="50" height="21"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="50" id="Uus-K9-PlI"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                        <nil key="textColor"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="size" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hvP-1G-5u7">
+                        <rect key="frame" x="381" y="18" width="31" height="21"/>
+                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                        <nil key="textColor"/>
+                        <nil key="highlightedColor"/>
+                    </label>
                 </subviews>
                 <constraints>
                     <constraint firstAttribute="bottom" secondItem="WEi-Bd-aCT" secondAttribute="bottom" constant="15" id="1u7-TH-Zcb"/>
-                    <constraint firstItem="ezI-Hc-MaQ" firstAttribute="top" secondItem="VlQ-v8-Tsy" secondAttribute="top" constant="5" id="RHu-Dc-qZa"/>
+                    <constraint firstItem="Pid-xl-mmd" firstAttribute="centerY" secondItem="ezI-Hc-MaQ" secondAttribute="centerY" id="EOn-Rl-Aah"/>
                     <constraint firstAttribute="trailing" secondItem="WEi-Bd-aCT" secondAttribute="trailing" constant="5" id="Rui-sQ-XPd"/>
+                    <constraint firstItem="WCJ-ze-jhR" firstAttribute="top" secondItem="VlQ-v8-Tsy" secondAttribute="top" constant="10" id="glz-vd-Fpd"/>
+                    <constraint firstAttribute="trailing" secondItem="Pid-xl-mmd" secondAttribute="trailing" constant="10" id="hGX-sl-pN1"/>
+                    <constraint firstItem="hvP-1G-5u7" firstAttribute="top" secondItem="VlQ-v8-Tsy" secondAttribute="topMargin" constant="10" id="hzU-d0-dbG"/>
                     <constraint firstItem="WEi-Bd-aCT" firstAttribute="leading" secondItem="ezI-Hc-MaQ" secondAttribute="leading" id="jhg-95-GCI"/>
+                    <constraint firstItem="hvP-1G-5u7" firstAttribute="trailing" secondItem="Pid-xl-mmd" secondAttribute="trailing" id="lEf-ko-dk1"/>
+                    <constraint firstItem="WCJ-ze-jhR" firstAttribute="leading" secondItem="ezI-Hc-MaQ" secondAttribute="leading" id="sT3-bj-RPV"/>
                     <constraint firstItem="ezI-Hc-MaQ" firstAttribute="leading" secondItem="VlQ-v8-Tsy" secondAttribute="leading" constant="5" id="xOf-15-SuQ"/>
                     <constraint firstAttribute="bottom" secondItem="ezI-Hc-MaQ" secondAttribute="bottom" constant="38" id="xgl-y1-tE2"/>
+                    <constraint firstItem="ezI-Hc-MaQ" firstAttribute="top" secondItem="WCJ-ze-jhR" secondAttribute="bottom" constant="10" id="yC3-WO-eWa"/>
                 </constraints>
             </tableViewCellContentView>
             <connections>
+                <outlet property="downloadStatuBtn" destination="Pid-xl-mmd" id="qdg-T5-C13"/>
+                <outlet property="fileSizeLabel" destination="hvP-1G-5u7" id="iTr-RH-ZnM"/>
                 <outlet property="iconView" destination="ezI-Hc-MaQ" id="vYj-g5-CFW"/>
+                <outlet property="nameLabel" destination="WCJ-ze-jhR" id="9g9-zW-mdr"/>
                 <outlet property="progressView" destination="WEi-Bd-aCT" id="scI-sB-gta"/>
             </connections>
             <point key="canvasLocation" x="4" y="-29.5"/>

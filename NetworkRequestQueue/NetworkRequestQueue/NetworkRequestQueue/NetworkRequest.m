@@ -12,12 +12,24 @@
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wgnu"
 
+#define OSPerformSelectorLeakWarning(Stuff) \
+do { \
+_Pragma("clang diagnostic push") \
+_Pragma("clang diagnostic ignored \"-Warc-performSelector-leaks\"") \
+Stuff; \
+_Pragma("clang diagnostic pop") \
+} while (0)
+
+
 NSString * const HTTPResponseErrorDomain = @"HTTPResponseErrorDomain";
+
 
 @interface NetworkRequest ()
 
 /// 所有的操作任务集合
 @property (nonatomic, strong) NSMutableArray<OSOperation *> *operations;
+/// 立即执行任务
+@property (nonatomic, assign) BOOL startImmediately;
 
 @end
 
@@ -48,8 +60,9 @@ NSString * const HTTPResponseErrorDomain = @"HTTPResponseErrorDomain";
     return self;
 }
 
+
 /// 执行操作
-- (void)performOperations {
+- (void)startAllRequests {
     // 防止并发资源抢夺问题，导致crash，加锁
     @synchronized (self) {
         if (!self.isSuspended) {
@@ -70,17 +83,22 @@ NSString * const HTTPResponseErrorDomain = @"HTTPResponseErrorDomain";
 #pragma mark - Public methods
 - (void)setSuspended:(BOOL)suspended {
     _suspended = suspended;
-    [self performOperations];
+    [self startAllRequests];
 }
 
 - (void)addOperation:(OSOperation *)op {
     
+    [self addOperation:op startImmediately:YES];
+}
+
+- (void)addOperation:(OSOperation *)op startImmediately:(BOOL)startImmediately {
+    _startImmediately = startImmediately;
     // 不允许有重复的请求时
     if (!self.allowDuplicateRequest) {
         
         // 倒叙遍历operations
         [self.operations enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(OSOperation * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-            if ([obj.request isEqual:op.request]) {
+            if ([obj.request.URL.absoluteString isEqual:op.request.URL.absoluteString]) {
                 [obj cancel];
             }
         }];
@@ -109,8 +127,11 @@ NSString * const HTTPResponseErrorDomain = @"HTTPResponseErrorDomain";
         [self.operations addObject:op];
     }
     
-    [op addObserver:self forKeyPath:@"isExecuting" options:NSKeyValueObservingOptionNew context:NULL];
-    [self performOperations];
+    [op addObserver:self forKeyPath:@"isFinished" options:NSKeyValueObservingOptionNew context:NULL];
+    [op addObserver:self forKeyPath:@"requestState" options:NSKeyValueObservingOptionNew context:NULL];
+    if (self.startImmediately) {
+        [self startAllRequests];
+    }
 }
 
 - (void)addRequest:(NSURLRequest *)request completionHandler:(OSCompletionHandler)completionHandler {
@@ -119,10 +140,24 @@ NSString * const HTTPResponseErrorDomain = @"HTTPResponseErrorDomain";
     [self addOperation:op];
 }
 
+- (void)startRequest:(NSURLRequest *)request {
+    [self.operations enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(OSOperation * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        if ([obj.request.URL.absoluteString isEqualToString:request.URL.absoluteString]) {
+            SEL selector = NSSelectorFromString(@"setRequest:");
+            OSPerformSelectorLeakWarning(
+                                         [obj performSelector:selector withObject:request];
+                                         );
+            [obj start];
+            *stop = YES;
+        }
+    }];
+}
+
 - (void)cancelRequest:(NSURLRequest *)request {
     [self.operations enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(OSOperation * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        if ([obj.request isEqual:request]) {
+        if ([obj.request.URL.absoluteString isEqualToString:request.URL.absoluteString]) {
             [obj cancel];
+            *stop = YES;
         }
     }];
 }
@@ -137,14 +172,25 @@ NSString * const HTTPResponseErrorDomain = @"HTTPResponseErrorDomain";
 #pragma mark - Private methods
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
     
-    if ([keyPath isEqualToString:@"isExecuting"]) {
-        OSOperation *op = object;
-        if (![op isKindOfClass:[OSOperation class]]) {
-            return;
-        }
+    OSOperation *op = object;
+    if (![op isKindOfClass:[OSOperation class]]) {
+        return;
+    }
+    if ([keyPath isEqualToString:@"isFinished"]) {
         [op removeObserver:self forKeyPath:keyPath];
+        [op removeObserver:self forKeyPath:@"requestState"];
         [self.operations removeObject:op];
-        [self performOperations];
+        if (self.startImmediately) {
+            [self startAllRequests];
+        }
+    }
+    
+    if ([keyPath isEqualToString:@"requestState"]) {
+        if (op.requestState == OSRequestFailure) {
+            [op removeObserver:self forKeyPath:keyPath];
+            // 尝试重新下载
+            //            [op start];
+        }
     }
 }
 
@@ -172,8 +218,10 @@ NSString * const HTTPResponseErrorDomain = @"HTTPResponseErrorDomain";
 @property (nonatomic, getter = isExecuting) BOOL executing;
 @property (nonatomic, getter = isFinished) BOOL finished;
 @property (nonatomic, getter = isCancelled) BOOL cancelled;
+@property (nonatomic, getter = isPaused) BOOL pause;
 
 @property (nonatomic, strong) NSSet *runloopModes;
+@property (nonatomic, strong) NSURLRequest *request;
 
 @end
 
@@ -182,6 +230,7 @@ NSString * const HTTPResponseErrorDomain = @"HTTPResponseErrorDomain";
 @synthesize executing = _executing;
 @synthesize finished = _finished;
 @synthesize cancelled = _cancelled;
+@synthesize request = _request;
 
 + (instancetype)operationWithRequest:(NSURLRequest *)request {
     return [[self alloc] initWithRequest:request];
@@ -193,7 +242,7 @@ NSString * const HTTPResponseErrorDomain = @"HTTPResponseErrorDomain";
         _autoRetryDelay = 5.0;
         _autoRetry = NO;
         _runloopModes = [NSSet setWithObject:NSRunLoopCommonModes];
-        _connection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:NO];
+        _requestState = 0;
     }
     return self;
 }
@@ -220,6 +269,7 @@ NSString * const HTTPResponseErrorDomain = @"HTTPResponseErrorDomain";
         // 开始执行任务, 并标记为正在执行
         [self willChangeValueForKey:@"isExecuting"];
         self.executing = YES;
+        self.requestState = OSRequestExecuting;
         NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
         for (NSString *runLoopMode in self.runloopModes) {
             [self.connection scheduleInRunLoop:runLoop forMode:runLoopMode];
@@ -234,18 +284,25 @@ NSString * const HTTPResponseErrorDomain = @"HTTPResponseErrorDomain";
     [self performSelector:@selector(cancelConnection) onThread:[[self class] networkRequestThread] withObject:nil waitUntilDone:NO modes:[self.runloopModes allObjects]];
 }
 
+
+
+
 - (void)cancelConnection {
     @synchronized (self) {
         // 当非取消状态时，取消请求任务，并标记为取消
-        if (!self.isCancelled) {
+        if (self.isCancelled || self.isFinished) {
+            [self finish];
+        } else {
             [self willChangeValueForKey:@"isCancelled"];
             self.cancelled = YES;
             [self.connection cancel];
+            self.requestState = OSRequestCanceled;
             [self didChangeValueForKey:@"isCancelled"];
             
             // 让connection执行代理的失败方法回调
             NSError *error = [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorCancelled userInfo:nil];
             [self connection:self.connection didFailWithError:error];
+            
         }
     }
 }
@@ -258,9 +315,76 @@ NSString * const HTTPResponseErrorDomain = @"HTTPResponseErrorDomain";
             [self willChangeValueForKey:@"isFinished"];
             self.executing = NO;
             self.finished = YES;
+            self.requestState = OSRequestFinish;
             [self didChangeValueForKey:@"isFinished"];
             [self didChangeValueForKey:@"isExecuting"];
         }
+    }
+}
+
+- (void)failure {
+    @synchronized (self) {
+        if (self.requestState != OSRequestFailure) {
+            [self willChangeValueForKey:@"isExecuting"];
+            self.executing = NO;
+            self.requestState = OSRequestFailure;
+            [self didChangeValueForKey:@"isExecuting"];
+        }
+    }
+}
+
+- (void)pause {
+    if ([self isPaused] || [self isFinished] || [self isCancelled]) {
+        return;
+    }
+    
+    @synchronized (self) {
+        if ([self isExecuting]) {
+            [self performSelector:@selector(operationDidPause) onThread:[[self class] networkRequestThread] withObject:nil waitUntilDone:NO modes:[self.runloopModes allObjects]];
+        }
+        
+        self.requestState = OSRequestPaused;
+    }
+    
+}
+
+- (BOOL)isPaused {
+    return self.requestState == OSRequestPaused;
+}
+
+- (void)resume {
+    if (![self isPaused]) {
+        return;
+    }
+    
+    @synchronized (self) {
+        [self start];
+    }
+    
+}
+
+- (void)operationDidPause {
+    @synchronized (self) {
+        [self.connection cancel];
+    }
+}
+
+- (NSURLConnection *)connection {
+    if (!_connection) {
+        _connection = [[NSURLConnection alloc] initWithRequest:self.request delegate:self startImmediately:NO];
+    }
+    return _connection;
+}
+
+- (void)setRequestState:(OSRequestStatus)requestState {
+    
+    if (_requestState != requestState && requestState != 0) {
+        _requestState = requestState;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (self.requestStatusHandler) {
+                self.requestStatusHandler(requestState);
+            }
+        });
     }
 }
 
@@ -288,18 +412,20 @@ NSString * const HTTPResponseErrorDomain = @"HTTPResponseErrorDomain";
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
     // 若autoRetry = YES(自动重新请求), 并且当前接收的错误信息是在autoRetryErrorCodes中的，就重新创建connection发起请求
     if (self.autoRetry && [self.autoRetryErrorCodes containsObject:@(error.code)]) {
-        self.connection = [[NSURLConnection alloc] initWithRequest:self.request delegate:self startImmediately:NO];
-        [_connection performSelector:@selector(start) withObject:nil afterDelay:self.autoRetryDelay];
+        self.requestState = OSRequestFailure;
+        [self.connection performSelector:@selector(start) withObject:nil afterDelay:self.autoRetryDelay];
     } else {
         
-        // autoRetry = NO 时标记完成，执行completionHandler
-        [self finish];
-        self.connection = nil;
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if (self.completionHandler) {
-                self.completionHandler(self.responseReceived, self.accumulatedData, error);
-            }
-        });
+        if (error.code != NSURLErrorCancelled) {
+            [self failure];
+            _connection = nil;
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (self.completionHandler) {
+                    self.completionHandler(self.responseReceived, self.accumulatedData, error);
+                }
+            });
+        }
         
     }
 }
@@ -405,3 +531,6 @@ NSString * const HTTPResponseErrorDomain = @"HTTPResponseErrorDomain";
 
 
 @end
+
+
+

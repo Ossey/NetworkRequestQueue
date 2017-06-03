@@ -8,14 +8,14 @@
 
 #import <Foundation/Foundation.h>
 
-//typedef NS_ENUM(NSInteger, OSRequestStatu) {
-//    OSRequestPause,             // 暂停
-//    OSRequestCanceled,          // 取消请求
-//    OSRequestWaiting,           // 等待中
-//    OSRequestExecuting,         // 正在执行该请求中
-//    OSRequestStatuFinish,       // 请求完成
-//    OSRequestStatuFailure       // 请求失败
-//};
+typedef NS_ENUM(NSInteger, OSRequestStatus) {
+    OSRequestPaused = 1,         // 暂停
+    OSRequestCanceled,          // 取消请求
+    OSRequestWaiting,          // 等待中
+    OSRequestExecuting,       // 正在执行该请求中
+    OSRequestFinish,         // 请求完成
+    OSRequestFailure        // 请求失败
+};
 
 typedef void(^OSCompletionHandler)(NSURLResponse *response, NSData *data, NSError *error);
 /// @param progress 请求进度
@@ -23,6 +23,7 @@ typedef void(^OSCompletionHandler)(NSURLResponse *response, NSData *data, NSErro
 /// @param totalBytes 请求的数据的预计总大小
 typedef void(^OSProgressHandler)(float progress, NSInteger bytesTransferred, NSInteger totalBytes);
 typedef void(^OSAuthenticationChallengeHandler)(NSURLAuthenticationChallenge *challenge);
+typedef void(^OSRequestStatusHandler)(OSRequestStatus requestState);
 
 typedef NS_ENUM(NSInteger, NetworkRequestMode) {
     NetworkRequestModeFILO = 0, // 队列形式先进先出
@@ -39,7 +40,8 @@ typedef NS_ENUM(NSInteger, NetworkRequestMode) {
 @property (nonatomic, copy) OSProgressHandler uploadProgressHandler;
 /// 当服务器需要返回认证时回调
 @property (nonatomic, copy) OSAuthenticationChallengeHandler authenticationChallengeHandler;
-
+/// 状态发送改变的回调
+@property (nonatomic, copy) OSRequestStatusHandler requestStatusHandler;
 /// 请求对象
 @property (nonatomic, strong, readonly) NSURLRequest *request;
 /// 自动重试时间
@@ -48,6 +50,8 @@ typedef NS_ENUM(NSInteger, NetworkRequestMode) {
 @property (nonatomic, assign) BOOL autoRetry;
 /// 只有符合这些错误code才允许自动重试
 @property (nonatomic, strong) NSSet *autoRetryErrorCodes;
+
+@property (nonatomic, assign) OSRequestStatus requestState;
 
 + (instancetype)operationWithRequest:(NSURLRequest *)request;
 
@@ -69,10 +73,12 @@ typedef NS_ENUM(NSInteger, NetworkRequestMode) {
 /// 是否允许当前操作集合中有重复的请求，默认为NO，当添加的操作(请求的参数相同)已经在操作队列中包含时，则会将添加的操作删除
 @property (nonatomic, assign) BOOL allowDuplicateRequest;
 
-
 - (void)addOperation:(OSOperation *)op;
+- (void)addOperation:(OSOperation *)op startImmediately:(BOOL)startImmediately;
 - (void)addRequest:(NSURLRequest *)request completionHandler:(OSCompletionHandler)completionHandler;
 - (void)cancelRequest:(NSURLRequest *)request;
 - (void)cancelAllRequests;
+- (void)startAllRequests;
+- (void)startRequest:(NSURLRequest *)request;
 
 @end

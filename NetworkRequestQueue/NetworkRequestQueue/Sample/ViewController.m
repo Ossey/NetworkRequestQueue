@@ -9,6 +9,8 @@
 #import "ViewController.h"
 #import "NetworkRequest.h"
 #import "SampleTableViewCell.h"
+#import "SampleDownloadModel.h"
+
 
 @interface ViewController ()
 
@@ -17,8 +19,9 @@
 
 @implementation ViewController {
     NSMutableArray<NSString *> *_imageUrls;
-    NSMutableDictionary *_images;
-    NSMutableDictionary *_progressStatues;
+    
+    NSMutableArray<SampleDownloadModel *> *_dataSource;
+    
 }
 
 - (void)viewDidLoad {
@@ -26,9 +29,12 @@
     // Do any additional setup after loading the view, typically from a nib.
     
     
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"加载" style:0 target:self action:@selector(loadDataFromNetwork)];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"加载" style:0 target:self action:@selector(downloadAllImage)];
     
     [self.tableView registerNib:[UINib nibWithNibName:@"SampleTableViewCell" bundle:nil] forCellReuseIdentifier:@"SampleTableViewCell"];
+    _imageUrls = [NSMutableArray arrayWithArray:[self getImageUrls]];
+    
+    _dataSource = [NSMutableArray array];
 }
 
 
@@ -40,65 +46,47 @@
 
 #pragma mark - load data
 
-- (void)loadDataFromNetwork {
+- (void)downloadAllImage {
     
-    if ([_imageUrls count]) {
-        _imageUrls = nil;
-        _images = nil;
-        _progressStatues = nil;
+    [_imageUrls enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         
-        [self refreshView];
-    } else {
-        _imageUrls = [NSMutableArray arrayWithArray:[self getImageUrls]];
-        _images = [NSMutableDictionary dictionary];
-        _progressStatues = [NSMutableDictionary dictionary];
         
-        [self refreshView];
+        NSURL *url = [NSURL URLWithString:obj];
         
-        [_imageUrls enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSURLRequest *request = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:15.0];
+        OSOperation *op = [OSOperation operationWithRequest:request];
+        [[NetworkRequest sharedInstance] addOperation:op startImmediately:NO];
+        
+        SampleDownloadModel *model = [SampleDownloadModel new];
+        model.fileName = [obj lastPathComponent];
+        op.completionHandler = ^(NSURLResponse *response, NSData *data, NSError *error) {
             
-            NSURL *url = [NSURL URLWithString:obj];
-            
-            NSURLRequest *request = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:15.0];
-            
-            OSOperation *op = [OSOperation operationWithRequest:request];
-            
-            op.completionHandler = ^(NSURLResponse *response, NSData *data, NSError *error) {
-                
-                if (!error) {
-                    UIImage *image = [UIImage imageWithData:data];
-                    if (image) {
-                        // 成功获取到图片
-                        [_images setObject:image forKey:obj];
-                        
-                    } else {
-                        // 未获取到图片
-                        NSString *errorDes = nil;
-                        if (error) {
-                            errorDes = [error localizedDescription];
-                        } else {
-                            errorDes = @"非image";
-                        }
-                        
-                        [_imageUrls replaceObjectAtIndex:idx withObject:errorDes];
-                    }
+            if (!error) {
+                UIImage *image = [UIImage imageWithData:data];
+                if (image) {
+                    model.image = image;
                 }
-                
-                [self refreshView];
-            };
+            }
             
+        };
+        
+        
+        op.downloadProgressHandler = ^(float progress, NSInteger bytesTransferred, NSInteger totalBytes) {
             
-            op.downloadProgressHandler = ^(float progress, NSInteger bytesTransferred, NSInteger totalBytes) {
-                
-                [_progressStatues setValue:@(progress) forKey:obj];
-                
-                [self refreshView];
-            };
+            model.progress = progress;
+            model.bytesTransferred = bytesTransferred;
+            model.totalBytes = totalBytes;
+        };
+        
+        op.requestStatusHandler = ^(OSRequestStatus requestState) {
+            model.statue = requestState;
             
-            [[NetworkRequest sharedInstance] addOperation:op];
-        }];
-    }
+        };
+        
+        [_dataSource addObject:model];
+    }];
     
+    [self refreshView];
 }
 
 - (void)refreshView {
@@ -111,12 +99,12 @@
         self.navigationItem.rightBarButtonItem.enabled = NO;
         self.navigationItem.rightBarButtonItem.title = @"等待中";
         
-    }else if ([_imageUrls count]) {
+    } else if ([_imageUrls count]) {
         self.navigationItem.rightBarButtonItem.enabled = YES;
-        self.navigationItem.rightBarButtonItem.title = @"Clear";
+        self.navigationItem.rightBarButtonItem.title = @"清除";
     } else {
         self.navigationItem.rightBarButtonItem.enabled = YES;
-        self.navigationItem.rightBarButtonItem.title = @"Load";
+        self.navigationItem.rightBarButtonItem.title = @"下载";
     }
 }
 
@@ -124,18 +112,19 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     
-    return [_imageUrls count];
+    return [_dataSource count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
     SampleTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SampleTableViewCell" forIndexPath:indexPath];
     
-    NSString *urlStr = _imageUrls[indexPath.row];
-    cell.iconView.image = _images[urlStr];
     
-    cell.progressView.progress = [_progressStatues[urlStr] floatValue];
-    
+    cell.model = _dataSource[indexPath.row];
+    cell.startCallBack = ^{
+        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:_imageUrls[indexPath.row]] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:15.0];
+        [[NetworkRequest sharedInstance] startRequest:request];
+    };
     return cell;
 }
 
@@ -147,17 +136,19 @@
 - (void)tableView:(__unused UITableView *)tableView didSelectRowAtIndexPath:(__unused NSIndexPath *)indexPath {
     UIViewController *viewController = [[UIViewController alloc] init];
     
-    NSString *urlString = _imageUrls[indexPath.row];
-    UIImage *image = _images[urlString];
-    UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
-    viewController.view = imageView;
+    //    NSString *urlString = _imageUrls[indexPath.row];
+    //    UIImage *image = _images[urlString];
+    //    UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
+    //    viewController.view = imageView;
     
     [self.navigationController pushViewController:viewController animated:YES];
 }
 
 - (NSArray <NSString *> *)getImageUrls {
     return @[
-             
+             @"http://sw.bos.baidu.com/sw-search-sp/software/447feea06f61e/QQ_mac_5.5.1.dmg",
+             @"http://dlsw.baidu.com/sw-search-sp/soft/b4/25734/itunes12.3.1442478948.dmg",
+             @"http://sw.bos.baidu.com/sw-search-sp/software/9d93250a5f604/QQMusic_mac_4.2.3.dmg",
              @"https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=3494814264,3775539112&fm=21&gp=0.jpg",
              @"https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=1996306967,4057581507&fm=21&gp=0.jpg",
              @"https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=2844924515,1070331860&fm=21&gp=0.jpg",

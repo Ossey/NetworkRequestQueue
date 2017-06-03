@@ -8,10 +8,12 @@
 
 #import <UIKit/UIKit.h>
 
+@class SampleDownloadModel;
+
 @interface SampleTableViewCell : UITableViewCell
 
-@property (weak, nonatomic) IBOutlet UIImageView *iconView;
+@property (nonatomic, copy) void (^startCallBack)();
 
-@property (weak, nonatomic) IBOutlet UIProgressView *progressView;
+@property (nonatomic, strong) SampleDownloadModel *model;
 
 @end

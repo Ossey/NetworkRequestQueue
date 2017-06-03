@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		182DE7A21EE2AB3500BF74F9 /* SampleTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 182DE7A11EE2AB3500BF74F9 /* SampleTableViewCell.xib */; };
 		182DE7A51EE2ABE300BF74F9 /* SampleTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 182DE7A41EE2ABE300BF74F9 /* SampleTableViewCell.m */; };
+		182DE7AB1EE3416400BF74F9 /* SampleDownloadModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 182DE7AA1EE3416400BF74F9 /* SampleDownloadModel.m */; };
 		18616E581EE2318000D09364 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 18616E571EE2318000D09364 /* main.m */; };
 		18616E611EE2318000D09364 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 18616E5F1EE2318000D09364 /* Main.storyboard */; };
 		18616E631EE2318000D09364 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 18616E621EE2318000D09364 /* Assets.xcassets */; };
@@ -22,6 +23,8 @@
 		182DE7A11EE2AB3500BF74F9 /* SampleTableViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = SampleTableViewCell.xib; sourceTree = "<group>"; };
 		182DE7A31EE2ABE300BF74F9 /* SampleTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SampleTableViewCell.h; sourceTree = "<group>"; };
 		182DE7A41EE2ABE300BF74F9 /* SampleTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SampleTableViewCell.m; sourceTree = "<group>"; };
+		182DE7A91EE3416400BF74F9 /* SampleDownloadModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SampleDownloadModel.h; sourceTree = "<group>"; };
+		182DE7AA1EE3416400BF74F9 /* SampleDownloadModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SampleDownloadModel.m; sourceTree = "<group>"; };
 		18616E531EE2318000D09364 /* NetworkRequestQueue.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NetworkRequestQueue.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		18616E571EE2318000D09364 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		18616E601EE2318000D09364 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -103,6 +106,8 @@
 				18616E721EE233E900D09364 /* ViewController.m */,
 				182DE7A31EE2ABE300BF74F9 /* SampleTableViewCell.h */,
 				182DE7A41EE2ABE300BF74F9 /* SampleTableViewCell.m */,
+				182DE7A91EE3416400BF74F9 /* SampleDownloadModel.h */,
+				182DE7AA1EE3416400BF74F9 /* SampleDownloadModel.m */,
 				182DE7A11EE2AB3500BF74F9 /* SampleTableViewCell.xib */,
 			);
 			path = Sample;
@@ -186,6 +191,7 @@
 				182DE7A51EE2ABE300BF74F9 /* SampleTableViewCell.m in Sources */,
 				18616E581EE2318000D09364 /* main.m in Sources */,
 				18616E741EE233E900D09364 /* ViewController.m in Sources */,
+				182DE7AB1EE3416400BF74F9 /* SampleDownloadModel.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
