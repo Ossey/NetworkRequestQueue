@@ -28,13 +28,13 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     
-    
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"加载" style:0 target:self action:@selector(downloadAllImage)];
-    
     [self.tableView registerNib:[UINib nibWithNibName:@"SampleTableViewCell" bundle:nil] forCellReuseIdentifier:@"SampleTableViewCell"];
+    
     _imageUrls = [NSMutableArray arrayWithArray:[self getImageUrls]];
     
     _dataSource = [NSMutableArray array];
+    
+    [self prepareAllOperation];
 }
 
 
@@ -46,7 +46,7 @@
 
 #pragma mark - load data
 
-- (void)downloadAllImage {
+- (void)prepareAllOperation {
     
     [_imageUrls enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         
@@ -88,20 +88,6 @@
 - (void)refreshView {
     
     [self.tableView reloadData];
-    
-    // 更新按钮的状态
-    if ([[NetworkRequest sharedInstance] requestCount]) {
-        // 正在加载中
-        self.navigationItem.rightBarButtonItem.enabled = NO;
-        self.navigationItem.rightBarButtonItem.title = @"等待中";
-        
-    } else if ([_imageUrls count]) {
-        self.navigationItem.rightBarButtonItem.enabled = YES;
-        self.navigationItem.rightBarButtonItem.title = @"清除";
-    } else {
-        self.navigationItem.rightBarButtonItem.enabled = YES;
-        self.navigationItem.rightBarButtonItem.title = @"下载";
-    }
 }
 
 #pragma mark - UITableViewController
@@ -130,6 +116,8 @@
 }
 
 - (void)tableView:(__unused UITableView *)tableView didSelectRowAtIndexPath:(__unused NSIndexPath *)indexPath {
+    
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
     NSData *data = _dataSource[indexPath.row].data;
     UIImage *image = [UIImage imageWithData:data];
     if (image) {
