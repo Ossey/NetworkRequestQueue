@@ -220,7 +220,6 @@ NSString * const HTTPResponseErrorDomain = @"HTTPResponseErrorDomain";
         // 开始执行任务, 并标记为正在执行
         [self willChangeValueForKey:@"isExecuting"];
         self.executing = YES;
-        [self.connection scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
         NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
         for (NSString *runLoopMode in self.runloopModes) {
             [self.connection scheduleInRunLoop:runLoop forMode:runLoopMode];
