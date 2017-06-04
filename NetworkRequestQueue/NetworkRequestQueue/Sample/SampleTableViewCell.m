@@ -64,6 +64,8 @@
     UIImage *image = [UIImage imageWithData:self.model.data];
     if (image) {
         self.iconView.image = image;
+    } else {
+        self.iconView.image = nil;
     }
     
     self.progressView.progress = self.model.progress;
